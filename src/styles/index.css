@@ -1,0 +1,10 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+@media print {
+  .sidebar,
+  header {
+    display: none !important;
+  }
+}
