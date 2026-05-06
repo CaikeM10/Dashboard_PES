@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Usuario {
+  id        String   @id @default(uuid())
+  nome      String
+  email     String   @unique
+  senha     String
+  role      String   // admin, gestor, responsavel
+  createdAt DateTime @default(now())
+}
+
+model Objetivo {
+  id        String   @id @default(uuid())
+  titulo    String
+  indicador String?
+
+  metas     Meta[]
+  entregas  Entrega[]
+}
+
+model Meta {
+  id          String   @id @default(uuid())
+  descricao   String
+  status      String
+  percentual  Int
+  prazo       DateTime?
+
+  objetivoId  String
+  objetivo    Objetivo @relation(fields: [objetivoId], references: [id])
+}
+
+model Entrega {
+  id          String   @id @default(uuid())
+  descricao   String
+  indicador   String?
+
+  objetivoId  String
+  objetivo    Objetivo @relation(fields: [objetivoId], references: [id])
+}
+
+model Escola {
+  id           String  @id @default(uuid())
+  nome         String
+  prioritario  Boolean @default(false)
+}

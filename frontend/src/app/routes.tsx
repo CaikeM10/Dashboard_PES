@@ -17,8 +17,6 @@ import AdminSetores from "./pages/admin/AdminSetores";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
 import AdminEscolas from "./pages/admin/AdminEscolas";
 import AdminAlunos from "./pages/admin/AdminAlunos";
-
-// ✅ NOVOS IMPORTS
 import Missao from "./pages/identidade/Missao";
 import Visao from "./pages/identidade/Visao";
 import Valores from "./pages/identidade/Valores";
@@ -26,16 +24,11 @@ import Valores from "./pages/identidade/Valores";
 import { useApp } from "./context/AppContext";
 
 function AuthGuard() {
-  const { currentUser } = useApp();
-  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    if (!currentUser) {
-      navigate("/login", { replace: true });
-    }
-  }, [currentUser, navigate]);
-
-  if (!currentUser) return null;
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
 
   return <Layout />;
 }

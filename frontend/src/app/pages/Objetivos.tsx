@@ -13,6 +13,7 @@ export default function Objetivos() {
     setGoalFilter({ objectiveId });
     navigate("/metas");
   };
+  
 
   const statusConfig: Record<string, { bg: string; text: string; border: string; bar: string }> = {
     green: {
