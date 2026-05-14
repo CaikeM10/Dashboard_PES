@@ -1,20 +1,47 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-export function authMiddleware(req: any, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
+const JWT_SECRET = process.env.JWT_SECRET || "segredo";
 
-  if (!authHeader) {
-    return res.status(401).json({ error: "Token não enviado" });
-  }
+interface TokenPayload {
+  id: string;
+  role: string;
+}
 
-  const token = authHeader.split(" ")[1];
+export interface AuthRequest extends Request {
+  user?: TokenPayload;
+}
 
+export function authMiddleware(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return res.status(401).json({
+        error: "Token não fornecido",
+      });
+    }
+
+    const [, token] = authHeader.split(" ");
+
+    if (!token) {
+      return res.status(401).json({
+        error: "Token inválido",
+      });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
+
     req.user = decoded;
+
     next();
-  } catch (err) {
-    return res.status(401).json({ error: "Token inválido" });
+  } catch (error) {
+    return res.status(401).json({
+      error: "Token inválido",
+    });
   }
 }

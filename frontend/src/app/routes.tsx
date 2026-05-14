@@ -35,7 +35,7 @@ function AuthGuard() {
 function RoleGuard({ children }: { children: React.ReactNode }) {
   const { currentUser } = useApp();
 
-  if (currentUser?.role !== "gestor") {
+  if (currentUser?.role !== "COORDENADOR") {
     return <Navigate to="/" replace />;
   }
 
@@ -56,27 +56,15 @@ export const router = createBrowserRouter([
       // 🔒 ROTAS PROTEGIDAS (SÓ GESTOR)
       {
         path: "identidade/missao",
-        element: (
-          <RoleGuard>
-            <Missao />
-          </RoleGuard>
-        ),
+        element: <Missao />,
       },
       {
         path: "identidade/visao",
-        element: (
-          <RoleGuard>
-            <Visao />
-          </RoleGuard>
-        ),
+        element: <Visao />,
       },
       {
         path: "identidade/valores",
-        element: (
-          <RoleGuard>
-            <Valores />
-          </RoleGuard>
-        ),
+        element: <Valores />,
       },
 
       { path: "desafios", element: <Desafios /> },

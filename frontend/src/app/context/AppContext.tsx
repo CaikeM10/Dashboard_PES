@@ -7,6 +7,7 @@ import React, {
   ReactNode,
 } from "react";
 import { login as loginApi } from "../../services/api";
+import { UserRole } from "../../../types/roles";
 import {
   Challenge,
   StrategicObjective,
@@ -33,7 +34,7 @@ interface AuthUser {
   id: string;
   nome: string;
   email: string;
-  role: "admin" | "gestor" | "responsavel";
+  role: UserRole;
 }
 
 interface GoalFilter {
