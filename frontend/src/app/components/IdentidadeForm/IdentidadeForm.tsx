@@ -1,116 +1,107 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { getIdentidade, updateIdentidade } from "../../../services/api";
 
-type Item = {
-  id: string;
-  texto: string;
-};
+type CampoIdentidade = "missao" | "visao" | "valores";
+
+interface IdentidadeFormProps {
+  titulo: string;
+  campo: CampoIdentidade;
+  descricao?: string;
+}
 
 export default function IdentidadeForm({
   titulo,
-  storageKey,
-}: {
-  titulo: string;
-  storageKey: string;
-}) {
-  const [items, setItems] = useState<Item[]>([]);
-  const [input, setInput] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
+  campo,
+  descricao,
+}: IdentidadeFormProps) {
+  const [texto, setTexto] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [salvando, setSalvando] = useState(false);
+  const [mensagem, setMensagem] = useState("");
+  const [erro, setErro] = useState("");
 
-  // carregar
   useEffect(() => {
-    const data = localStorage.getItem(storageKey);
-    if (data) setItems(JSON.parse(data));
-  }, [storageKey]);
+    carregarDados();
+  }, []);
 
-  // salvar
-  useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(items));
-  }, [items, storageKey]);
+  async function carregarDados() {
+    try {
+      setLoading(true);
+      setErro("");
 
-  // adicionar ou editar
-  const handleSave = () => {
-    if (!input.trim()) return;
+      const identidade = await getIdentidade();
 
-    if (editingId) {
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === editingId ? { ...item, texto: input } : item,
-        ),
-      );
-      setEditingId(null);
-    } else {
-      setItems((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          texto: input,
-        },
-      ]);
+      setTexto((identidade[campo] as string) || "");
+    } catch (error: any) {
+      setErro(error.message || "Erro ao carregar informações.");
+    } finally {
+      setLoading(false);
     }
+  }
 
-    setInput("");
-  };
+  async function salvar() {
+    try {
+      setSalvando(true);
+      setErro("");
+      setMensagem("");
 
-  // editar
-  const handleEdit = (item: Item) => {
-    setInput(item.texto);
-    setEditingId(item.id);
-  };
+      await updateIdentidade({
+        [campo]: texto,
+      });
 
-  // excluir
-  const handleDelete = (id: string) => {
-    if (!confirm("Deseja realmente excluir?")) return;
-    setItems((prev) => prev.filter((item) => item.id !== id));
-  };
+      setMensagem("Informações salvas com sucesso.");
+
+      setTimeout(() => {
+        setMensagem("");
+      }, 3000);
+    } catch (error: any) {
+      setErro(error.message || "Erro ao salvar informações.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <p className="text-slate-500">Carregando...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 space-y-4">
-      <h2 className="text-xl font-bold">{titulo}</h2>
+    <div className="p-6 max-w-5xl">
+      <h1 className="text-3xl font-bold text-slate-800 mb-2">{titulo}</h1>
 
-      {/* INPUT */}
-      <div className="flex gap-2">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={`Digite ${titulo.toLowerCase()}...`}
-          className="border p-2 rounded w-full"
-        />
+      {descricao && <p className="text-slate-600 mb-6">{descricao}</p>}
 
-        <button
-          onClick={handleSave}
-          className="bg-blue-600 text-white px-4 rounded"
-        >
-          {editingId ? "Salvar" : "Adicionar"}
-        </button>
-      </div>
+      {erro && (
+        <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 text-red-700">
+          {erro}
+        </div>
+      )}
 
-      {/* LISTA */}
-      <div className="space-y-2">
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className="flex justify-between items-center border p-3 rounded"
-          >
-            <span>{item.texto}</span>
+      {mensagem && (
+        <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-3 text-green-700">
+          {mensagem}
+        </div>
+      )}
 
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleEdit(item)}
-                className="text-blue-600"
-              >
-                Editar
-              </button>
+      <textarea
+        value={texto}
+        onChange={(e) => setTexto(e.target.value)}
+        rows={12}
+        className="w-full border border-slate-300 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        placeholder={`Digite a ${titulo.toLowerCase()} da instituição...`}
+      />
 
-              <button
-                onClick={() => handleDelete(item.id)}
-                className="text-red-600"
-              >
-                Excluir
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+      <button
+        onClick={salvar}
+        disabled={salvando}
+        className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition disabled:opacity-50"
+      >
+        {salvando ? "Salvando..." : "Salvar"}
+      </button>
     </div>
   );
 }
